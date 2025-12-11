@@ -35,6 +35,23 @@ for i in range(len(VERBS)):
 for i in range(len(ADJECTIVES)):
     ADJECTIVES[i] = ADJECTIVES[i][:-1]
 
+class PurrLevel():
+    def __init__(self, x, y, font, text_color = (0,0,0), threshold = 100, current = 0):
+        self.x, self.y = x, y
+        self.font = font
+        self.text_color = text_color
+        self.current = current
+        self.threshold = threshold
+        self.text = f"Purr Level: {self.current}/{self.threshold}"
+    def update(self, text_length):
+        self.current += text_length
+        self.current = min(self.current, self.threshold)
+        self.text = f"Purr Level: {self.current}/{self.threshold}"
+    def draw(self, screen):
+        text_surface = self.font.render(self.text, True, self.text_color)
+        text_rect = text_surface.get_rect(topleft=(self.x, self.y))
+        screen.blit(text_surface, text_rect)
+
 class TextBox():
     def __init__(self, x, y, w, h, font, text_color=(0,0,0), bg_color=(255,255,255), border_color=(0,0,0)):
         self.rect = pygame.Rect(x, y, w, h)
@@ -253,6 +270,7 @@ output_box = OutputBox(250, 375, 500, 200, font)
 translate_button = Button(250, 333, 160, 35, "Translate <3", font, (0,0,0), (252, 242, 194))
 clear_button = Button(417, 333, 160, 35, "Clear!", font, (0,0,0), (252, 242, 194))
 copy_button = Button(583, 333, 160, 35, "Copy Meows :D", font, (0,0,0), (252, 242, 194))
+purr_meter = PurrLevel(10, 10, font)
 cat = Cat((125,455))
 all_sprites = pygame.sprite.Group(cat)
 
@@ -267,6 +285,7 @@ while running:
             meow_text = convert_to_meow(input_box.text)
             output_box.set_text(meow_text)
             cat.start_speak(len(meow_text.split()))
+            purr_meter.update(len(meow_text.split()))
         if clear_button.clicked(event):
             input_box.text = ""
             output_box.text = ""
@@ -275,7 +294,10 @@ while running:
                 js.navigator.clipboard.writeText(output_box.text)
             else:
                 pyperclip.copy(output_box.text)
-    screen.fill((252, 242, 194))
+    if purr_meter.current == purr_meter.threshold:
+        screen.fill((245, 44, 29))
+    else:
+        screen.fill((252, 242, 194))
     
     logo_image = pygame.image.load("logo.png").convert_alpha()
     screen.blit(logo_image, logo_image.get_rect(midtop=(400,0)))
@@ -285,6 +307,7 @@ while running:
     clear_button.draw(screen)
     copy_button.draw(screen)
     output_box.draw(screen)
+    purr_meter.draw(screen)
     all_sprites.draw(screen)
     clock.tick(60)
     pygame.display.update()
